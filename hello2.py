@@ -9,6 +9,9 @@ def main():
     # Command line args are in sys.argv[1], sys.argv[2] ...
     # sys.argv[0] is the script name itself and can be ignored
 
+    #slice syntax try
+    print sys.argv[1][:2]
+
 # Standard boilerplate to call the main() function to begin
 # the program.
 if __name__ == '__main__':
