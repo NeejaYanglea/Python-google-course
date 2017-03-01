@@ -8,6 +8,7 @@
 
 import sys
 import re
+import operator
 
 """Baby Names exercise
 
@@ -40,9 +41,26 @@ def extract_names(filename):
   followed by the name-rank strings in alphabetical order.
   ['2006', 'Aaliyah 91', Aaron 57', 'Abagail 895', ' ...]
   """
-  # +++your code here+++
-  return
+  list = []
+  f = open(filename, 'r')
+  match = re.search('(Popularity in) ([0-9][0-9][0-9][0-9])', f.read())
+  if match:
+    list.append(match.group(2)) 
 
+  f.seek(0)
+  dict = {}
+
+  names = re.findall('<td>([0-9]+)</td><td>(\w+)</td><td>(\w+)</td>', f.read())
+  if names:
+    for name in names:
+      dict[name[1]] = name[0]
+      dict[name[2]] = name[0]
+  
+  f.close()
+  sorted_by_rank = sorted(dict.items())
+
+  list.extend([item[0] + ' ' + item[1] for item in sorted_by_rank])
+  return list
 
 def main():
   # This command-line parsing code is provided.
@@ -64,5 +82,12 @@ def main():
   # For each filename, get the names, then either print the text output
   # or write it to a summary file
   
+  for file in args:
+    if summary:
+      f = open('summary' + file + '.txt', 'w')
+      f.write(', '.join(extract_names(file)))
+    else:
+      print extract_names(file)
+
 if __name__ == '__main__':
   main()
