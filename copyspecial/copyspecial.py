@@ -18,6 +18,41 @@ import commands
 # +++your code here+++
 # Write functions and modify main() to call them
 
+# Returns a list of the absolute paths of the special files in the given directory
+def get_special_paths(dir):
+  filenames = os.listdir(dir)
+  absolutepaths = []
+
+  for filename in filenames:
+    match = re.search('\w*__\w+__.*', filename)
+    if match:
+      absolutepaths.append(os.path.abspath(match.group()))
+
+  return absolutepaths
+
+def copy_to(paths, dir):
+  absdir = os.path.abspath(dir)
+
+  if not os.path.exists(absdir):
+    os.mkdir(absdir)
+
+  for path in paths:
+    basename = os.path.basename(path)
+    shutil.copy(path, os.path.join(absdir, basename))
+
+  return
+
+def zip_to(paths, zippath):
+  files = ' '.join(paths)
+
+  cmd = 'zip -j ' + zippath + ' ' + files
+  try:
+    print "Command I'm going to do: " + cmd
+    err = os.system(cmd)
+  except IOError:
+    sys.stderr.write('problem reading:' + filename)
+
+  return
 
 
 def main():
@@ -50,6 +85,12 @@ def main():
 
   # +++your code here+++
   # Call your functions
+  if todir:
+    copy_to(get_special_paths(args[1]), todir)
+  elif tozip:
+    zip_to(get_special_paths(args[1]), tozip)
+  else:
+    print '\n'.join(get_special_paths(args[1]))
   
 if __name__ == "__main__":
   main()
