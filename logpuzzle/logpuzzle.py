@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import urllib
+import operator
 
 """Logpuzzle exercise
 Given an apache logfile, find the puzzle urls and download the images.
@@ -25,7 +26,30 @@ def read_urls(filename):
   Screens out duplicate urls and returns the urls sorted into
   increasing order."""
   # +++your code here+++
-  
+  f = open(filename, 'r')
+
+  paths = re.findall(r'GET (.*puzzle.*) HTTP', f.read())
+  pathset = set(paths)
+  pathlist = sort_list(pathset)
+
+  return pathlist
+
+def sort_list(unsorted_set):
+  sorted_list = []
+  support_list = []
+
+  for item in unsorted_set:
+    match = re.search('-\w+-(\w+).jpg', item)
+    if match:
+      support_list.append((item, match.group(1)))
+  if support_list == []:
+    sorted_list = sorted(unsorted_set)
+  else:
+    support_list.sort(key=operator.itemgetter(1))
+    sorted_list = [a for (a,b) in support_list]
+
+  return sorted_list
+
 
 def download_images(img_urls, dest_dir):
   """Given the urls already in the correct order, downloads
@@ -36,7 +60,32 @@ def download_images(img_urls, dest_dir):
   Creates the directory if necessary.
   """
   # +++your code here+++
+  if not os.path.exists(dest_dir):
+    os.mkdir(dest_dir)
   
+  if os.listdir(dest_dir) == []:
+    for i, url in enumerate(img_urls):
+      complete_url = 'http://code.google.com' + url
+      print 'Retrieving image from ' + complete_url
+      urllib.urlretrieve(complete_url, os.path.join(dest_dir, 'img' + str(i) + '.jpg'))
+
+  page = open(dest_dir + '.html', 'w+')
+  page.write('<html>\n<body>\n')
+  images = os.listdir(dest_dir)
+  images.sort(key=natural_keys)
+
+  for image in images:
+    page.write('<img src="' + os.path.join(dest_dir, image) + '">')
+  
+  page.write('\n</body>\n</html>')
+  page.close()
+
+#helper functions for natural sorting
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+def natural_keys(text):
+    return [ atoi(c) for c in re.split('(\d+)', text) ]
 
 def main():
   args = sys.argv[1:]
@@ -51,6 +100,7 @@ def main():
     del args[0:2]
 
   img_urls = read_urls(args[0])
+
 
   if todir:
     download_images(img_urls, todir)
